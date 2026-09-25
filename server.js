@@ -20,6 +20,32 @@ const {
 } = require('docx');
 
 const app = express();
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  if (
+    origin === 'https://localhost' ||
+    origin === 'http://localhost' ||
+    origin === 'capacitor://localhost' ||
+    origin === 'http://localhost:3000' ||
+    origin === 'http://localhost:8100'
+  ) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Content-Type, Authorization, Accept'
+  );
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
 const PORT = Number(process.env.PORT || 3000);
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite';
@@ -615,6 +641,8 @@ server.on('error', (error) => {
 
   process.exit(1);
 });
+
+
 
 
 
