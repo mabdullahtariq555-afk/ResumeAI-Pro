@@ -1,4 +1,4 @@
-﻿const site = document.getElementById('site');
+const site = document.getElementById('site');
 let config = {};
 let resumes = [];
 let current = null;
@@ -89,10 +89,10 @@ function resumeHTML(r) {
     <header class="resume-header">
       <h1>${esc(p.name||'Your Name')}</h1>
       ${p.headline?`<div class="resume-headline">${esc(p.headline)}</div>`:''}
-      ${[p.email,p.phone,p.location,p.linkedin,p.website].filter(Boolean).length?`<div class="resume-contact">${[p.email,p.phone,p.location,p.linkedin,p.website].filter(Boolean).map(esc).join(' â‚¬Â¢ ')}</div>`:''}
+      ${[p.email,p.phone,p.location,p.linkedin,p.website].filter(Boolean).length?`<div class="resume-contact">${[p.email,p.phone,p.location,p.linkedin,p.website].filter(Boolean).map(esc).join(' €¢ ')}</div>`:''}
     </header>`;
   if(r.summary) h+=`<section class="resume-section"><h2>Professional Summary</h2><p>${esc(r.summary).replace(/\n/g,'<br>')}</p></section>`;
-  if(e.length) h+=`<section class="resume-section"><h2>Experience</h2>${e.map(x=>{x=x||{};const desc=String(x.desc??x.description??'');return `<div class="resume-entry"><div class="entry-top"><strong>${esc(x.title||'Position')}</strong><span>${esc(x.dates??`${x.start||''} â‚¬â€œ ${x.end||''}`)}</span></div><div class="entry-company">${esc(x.company||'')}</div>${desc?`<ul>${renderList(desc.split(/\r?\n/))}</ul>`:''}</div>`}).join('')}</section>`;
+  if(e.length) h+=`<section class="resume-section"><h2>Experience</h2>${e.map(x=>{x=x||{};const desc=String(x.desc??x.description??'');return `<div class="resume-entry"><div class="entry-top"><strong>${esc(x.title||'Position')}</strong><span>${esc(x.dates??`${x.start||''} €“ ${x.end||''}`)}</span></div><div class="entry-company">${esc(x.company||'')}</div>${desc?`<ul>${renderList(desc.split(/\r?\n/))}</ul>`:''}</div>`}).join('')}</section>`;
   if(sk.filter(Boolean).length) h+=`<section class="resume-section"><h2>Skills</h2><div class="skill-list">${sk.filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join('')}</div></section>`;
   if(pr.length) h+=`<section class="resume-section"><h2>Projects</h2>${pr.map(x=>{x=x||{};const d=String(x.desc??x.description??'');return `<div class="resume-entry"><strong>${esc(x.name||'Project')}</strong>${x.link?`<div class="entry-link">${esc(x.link)}</div>`:''}${d?`<p>${esc(d).replace(/\n/g,'<br>')}</p>`:''}</div>`}).join('')}</section>`;
   if(ed.length) h+=`<section class="resume-section"><h2>Education</h2>${ed.map(x=>{x=x||{};return `<div class="resume-entry"><div class="entry-top"><strong>${esc(x.degree||'Degree')}</strong><span>${esc(x.year||'')}</span></div><div class="entry-company">${esc(x.school||'')}</div></div>`}).join('')}</section>`;
@@ -152,7 +152,7 @@ function templateSection(r){
 
 function builder(){
   const r=current;
-  site.innerHTML=`<header class="nav"><div class="logo">ResumeAI Pro</div><div class="actions"><button class="btn ghost" onclick="current=null;render()">Dashboard</button><button class="btn" onclick="openPreview(current)">Preview</button><button class="btn" onclick="downloadPDF()">Export PDF</button><button class="btn" onclick="downloadDOCX()">Export DOCX</button><button class="btn primary" onclick="saveNow()">Save</button></div></header>
+  site.innerHTML=`<header class="nav"><div class="logo">ResumeAI Pro</div><div class="actions"><button class="btn ghost" onclick="current=null;render()">Dashboard</button><button class="btn" onclick="openPreview(current)">Preview</button><button class="btn" onclick="downloadPDF()">Export PDF</button><button class="btn primary" onclick="saveNow()">Save</button></div></header>
   <main class="app">
     <div class="topbar"><div><h1><input style="font-size:25px;font-weight:800;border:0;background:transparent;width:min(430px,90vw)" value="${esc(r.name)}" oninput="input('name',this.value)"></h1></div><div class="actions"><button class="btn" onclick="openVersions()">Versions</button><button class="btn" onclick="compareVersions()">Compare</button><button class="btn" onclick="jdMatcher()">JD Match</button><button class="btn" onclick="coverLetter()">Cover Letter</button><button class="btn" onclick="runAnalysis()">AI Analysis</button></div></div>
     <div class="stats"><div class="stat"><span>ATS</span><br><b>${currentAnalysis?.ats_analysis?.overall_score??score(r)}%</b></div><div class="stat"><span>Job Fit</span><br><b>${currentAnalysis?.ats_analysis?.job_fit_score??'-'}%</b></div><div class="stat"><span>Changes</span><br><b>${(r.changeHistory||[]).length}</b></div></div>
@@ -183,7 +183,7 @@ async function uploadResume(){
   if(file.size>5*1024*1024)return toast('Maximum file size is 5 MB.');
   const fd=new FormData();fd.append('resume',file);
   try{
-    const res=await fetch('/api/upload-resume',{method:'POST',body:fd});
+    const res=await fetch('https://resume-ai-pro-rose.vercel.app/api/upload-resume',{method:'POST',body:fd});
     const j=await res.json();if(!res.ok)throw new Error(j.error||'Upload failed.');
     current.rawText=j.text;persistCurrent();builder();toast(`Imported ${j.filename}`);
   }catch(e){toast('Upload: '+e.message);}
@@ -196,7 +196,7 @@ async function runAnalysis(){
   if(aiBusy)return;
   aiBusy=true;toast('Gemini is analyzing...');
   try{
-    const res=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({resumeText,jd})});
+    const res=await fetch('https://resume-ai-pro-rose.vercel.app/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({resumeText,jd})});
     const j=await res.json();if(!res.ok)throw new Error(j.error||'Analysis failed.');
     currentAnalysis=j;current.analysis=j;current.rawText=resumeText;persistCurrent();builder();toast('Analysis complete.');
   }catch(e){toast('AI: '+e.message);}
@@ -215,7 +215,7 @@ function buildPlainText(r){
 async function callAI(prompt,type='text/plain'){
   if(aiBusy)return '';
   aiBusy=true;
-  try{const res=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,responseMimeType:type})});const j=await res.json();if(!res.ok)throw new Error(j.error||'AI request failed');return j.text||''}
+  try{const res=await fetch('https://resume-ai-pro-rose.vercel.app/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,responseMimeType:type})});const j=await res.json();if(!res.ok)throw new Error(j.error||'AI request failed');return j.text||''}
   finally{aiBusy=false;}
 }
 function cleanJSON(s){return JSON.parse(String(s).trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim());}
@@ -361,12 +361,12 @@ function openPreview(r){
 
 async function downloadPDF(){
   if(aiBusy)return;aiBusy=true;toast('Generating PDF...');
-  try{const res=await fetch('/api/pdf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({html:resumeHTML(current),filename:(current.name||'resume')+'.pdf'})});const j=res.ok?null:await res.json().catch(()=>({}));if(!res.ok)throw new Error(j?.error||'PDF export failed.');const blob=await res.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(current.name||'resume')+'.pdf';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('PDF ready.');}catch(e){toast('PDF: '+e.message)}finally{aiBusy=false;}
+  try{const res=await fetch('https://resume-ai-pro-rose.vercel.app/api/pdf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({html:resumeHTML(current),filename:(current.name||'resume')+'.pdf'})});const j=res.ok?null:await res.json().catch(()=>({}));if(!res.ok)throw new Error(j?.error||'PDF export failed.');const blob=await res.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(current.name||'resume')+'.pdf';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('PDF ready.');}catch(e){toast('PDF: '+e.message)}finally{aiBusy=false;}
 }
 
 async function downloadDOCX(){
   persistCurrent();toast('Generating DOCX...');
-  try{const res=await fetch('/api/docx',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({resume:current})});const j=res.ok?null:await res.json().catch(()=>({}));if(!res.ok)throw new Error(j?.error||'DOCX export failed.');const blob=await res.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(current.name||'resume')+'.docx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('DOCX ready.');}catch(e){toast('DOCX: '+e.message);}
+  try{const res=await fetch('https://resume-ai-pro-rose.vercel.app/api/docx',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({resume:current})});const j=res.ok?null:await res.json().catch(()=>({}));if(!res.ok)throw new Error(j?.error||'DOCX export failed.');const blob=await res.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(current.name||'resume')+'.docx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('DOCX ready.');}catch(e){toast('DOCX: '+e.message);}
 }
 
 async function aiSettings(){
@@ -375,10 +375,13 @@ async function aiSettings(){
 
 async function init(){
   try{
-    const res=await fetch('/api/config');config=await res.json();loadResumes();render();
+    const res=await fetch('https://resume-ai-pro-rose.vercel.app/api/config');config=await res.json();loadResumes();render();
   }catch(e){site.innerHTML=`<main class="app"><div class="panel"><h2>Configuration error</h2><p>${esc(e.message)}</p></div></main>`;}
 }
 init();
+
+
+
 
 
 
